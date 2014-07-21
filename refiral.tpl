@@ -3,7 +3,7 @@
 	{literal}
 	<script type="text/javascript">var apiKey = '{/literal}{$refiralKey}{literal}';</script>
 	<script type="text/javascript">var showButton = {/literal}{$flag_button}{literal};</script>
-	<script src="http://www.refiral.com/api/all.js"></script>
+	<script src="//rfer.co/api/v1/js/all.js"></script>
 	{/literal}
 	{if $flag_invoice}
 		{literal}

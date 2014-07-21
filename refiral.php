@@ -42,10 +42,10 @@ class Refiral extends Module {
 		foreach($products as $product)
 		{
 			$subTotal += $product['total_wt'];
-			$products_array[] = array("id" => $product['id_product'], "name" => $product['name'], "quantity" => $product['cart_quantity']);
+			$products_array[] = array("id" => $product['id_product'], "name" => $product['name'], "quantity" => $product['cart_quantity'], "price" => $product['total_wt']);
 		}
 		$subTotal += $cart->getOrderTotal(true, Cart::ONLY_SHIPPING);
-		return array("sub_total" => $subTotal, "products" => json_encode($products_array));
+		return array("sub_total" => $subTotal, "products" => serialize($products_array));
 	}
 	
 	function hookFooter($params)
@@ -64,39 +64,38 @@ class Refiral extends Module {
 			if($cookie->id_cart)
 			{
 				$customer = new Customer((int)$params['cart']->id_customer);
-				$cookie->email = $customer->email; //Set email id
-				$cookie->name = $customer->firstname.$customer->lastname; // Set first name
+				$cookie->refiral_email = $customer->email; //Set email id
+				$cookie->refiral_name = $customer->firstname. ' ' .$customer->lastname; // Set first name
 				
 				// Get grand total
 				$cart = new Cart($cookie->id_cart);
-				$cookie->grandTotal = $cart->getOrderTotal(true);
+				$cookie->refiral_grandTotal = $cart->getOrderTotal(true);
 				
 				// Get Coupon Code
-				$cartRule = new CartRule();
-				$coupons = $cartRule->getCustomerCartRules((int)$params['cart']->id_lang,(int)$params['cart']->id_customer,true,true,false,$cart);
-				$cookie->couponCode = $coupons[0]['code'];
+				$cookie->refiral_couponCode = $cart->getCartRules()[0]['obj']->code;
 				
 				// Get subtotal and products info
 				$subNproducts = $this->getCartDetails($cart);
-				$cookie->cartInfo = $subNproducts['products'];
-				$cookie->subTotal = $subNproducts['sub_total'];
+				$cookie->refiral_cartInfo = $subNproducts['products'];
+				$cookie->refiral_subTotal = $subNproducts['sub_total'];
+				var_dump($cookie);
 			}
-			else if(isset($cookie->name))
+			else if(isset($cookie->refiral_name))
 			{
 				$smarty->assign(array('flag_button' => 'false')); // hide button
 				$smarty->assign(array('flag_invoice' => 'true')); // send invoice data
-				$smarty->assign(array('order_name' => $cookie->name));
-				$smarty->assign(array('order_email' => $cookie->email));
-				$smarty->assign(array('order_subtotal' => $cookie->subTotal));
-				$smarty->assign(array('order_total' => $cookie->grandTotal));
-				$smarty->assign(array('order_coupon' => $cookie->couponCode));
-				$smarty->assign(array('order_cart' => $cookie->cartInfo));
-				unset($cookie->name);
-				unset($cookie->email);
-				unset($cookie->subTotal);
-				unset($cookie->grandTotal);
-				unset($cookie->couponCode);
-				unset($cookie->cartInfo);
+				$smarty->assign(array('order_name' => $cookie->refiral_name));
+				$smarty->assign(array('order_email' => $cookie->refiral_email));
+				$smarty->assign(array('order_subtotal' => $cookie->refiral_subTotal));
+				$smarty->assign(array('order_total' => $cookie->refiral_grandTotal));
+				$smarty->assign(array('order_coupon' => $cookie->refiral_couponCode));
+				$smarty->assign(array('order_cart' => $cookie->refiral_cartInfo));
+				unset($cookie->refiral_name);
+				unset($cookie->refiral_email);
+				unset($cookie->refiral_subTotal);
+				unset($cookie->refiral_grandTotal);
+				unset($cookie->refiral_couponCode);
+				unset($cookie->refiral_cartInfo);
 			}
 
 			return $this->display(__FILE__, 'refiral.tpl');
